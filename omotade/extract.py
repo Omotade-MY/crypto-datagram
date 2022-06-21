@@ -8,11 +8,6 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 import pandas as pd
-import os
-import boto3
-from io import StringIO
-
-
 
 def scrape():
     data = requests.get('https://coinmarketcap.com/all/views/all/')
@@ -92,6 +87,7 @@ def to_csv(coindata, columns):
     pd.DataFrame(coindata, columns=columns).to_csv(path, index=False)
 
 
+"""
 def upload_to_s3(data, columns, bucket= 'crypto-project-storage'):
 
     csv_buffer =StringIO()
@@ -103,3 +99,5 @@ def upload_to_s3(data, columns, bucket= 'crypto-project-storage'):
     # create instance of s3 object
     s3_resource = boto3.resource('s3')
     s3_resource.Object(bucket, 'cryptocurrency.csv').put(Body=file)
+
+    """
