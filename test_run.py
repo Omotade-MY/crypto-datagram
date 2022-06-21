@@ -1,11 +1,14 @@
 #from omotade.extract import extract_coindata, to_csv
 from Whaleeu.Schema import  schema
 # extract coin information
+from omotade.extract import extract_coindata
+from omotade.crud import load_data
 
-#3data, cols = extract_coindata()
+data, cols = extract_coindata()
 
-# save to csv file
+# load to database
 
-#to_csv(data, cols)
+load_data(data, cols)
+
 
 
