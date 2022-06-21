@@ -4,13 +4,11 @@ Created on Tue May 17 22:36:44 2022
 
 @author: Omotade
 """
-
-
 from sqlalchemy.orm import sessionmaker
 from tqdm.std import tqdm
-from extract import extract_coindata
+from omotade.extract import extract_coindata
 import pandas as pd
-from config import local_engine
+from omotade.config import local_engine
 from datetime import datetime
 import logging
 logger = logging.Logger('catch_all')
