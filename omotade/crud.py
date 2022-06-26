@@ -4,11 +4,22 @@ Created on Tue May 17 22:36:44 2022
 
 @author: Omotade
 """
+
+import sys
+import os
+sys.path.append(os.getcwd())
+
+try:
+    from extract import extract_coindata
+    from config import local_engine
+    
+except ModuleNotFoundError:
+    from omotade.extract import extract_coindata
+    from omotade.config import local_engine
+
 from sqlalchemy.orm import sessionmaker
 from tqdm.std import tqdm
-from omotade.extract import extract_coindata
 import pandas as pd
-from omotade.config import local_engine
 from datetime import datetime
 import logging
 logger = logging.Logger('catch_all')
