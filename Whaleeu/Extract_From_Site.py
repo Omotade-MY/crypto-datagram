@@ -13,7 +13,7 @@ import re
 my_headers = {
 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' + ' (KHTML, like Gecko) Chrome/61.0.3163.100Safari/537.36'
 }
-u ="https://finance.yahoo.com/cryptocurrencies/?guccounter=1&guce_referrer=aHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS8&guce_referrer_sig=AQAAAEFsUKFje9IfbBRb_Nc1c0CH3XLzBMsPGbC34aJHedsZZWMcIK71OyPeb0F-uoEFv7r7apNwoj_KOsefjcG2m-LQthCw0QCGR7CMNllymBciBOYyWj9ND3gHBh8NpI0MAxiwEPVCdmfcwd4SZuMWtyk3BsTEvTFYp518yv8EAE8L"
+u ="https://finance.yahoo.com/cryptocurrencies/"
 header = []
 data = []
 
@@ -44,7 +44,7 @@ def Scrape(test_url=u):
     Dframe["Symbol"] = Dframe["Symbol"].apply(lambda x : x.split("-")[0])
     Dframe.rename(columns = {'Price (Intraday)':'Price','% Change':'Percentage_Change','Volume in Currency (Since 0:00 UTC)':'Volume_in_Currency_Since_0:00_UTC',"Volume in Currency (24Hr)" :"Volume_in_Currency_in_24Hr", "Total Volume All Currencies (24Hr)":"Total_Volume_All_Currencies_in_24Hr"}, inplace = True)
     return Dframe
-Scrape()
+# Scrape()
 # To csv
 Scrape().to_csv("crypto_data.csv", index=False)
 

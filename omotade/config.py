@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 #from auths import hostname, password
 
 
-LOCAL_DATABASE_URI = "postgres+psycopg2://postgres:udkhulbisalaam@localhost:5432/Cryptocurrency"
+LOCAL_DATABASE_URI = "postgresql+psycopg2://postgres:udkhulbisalaam@localhost:5432/Cryptocurrency"
 
 #CLOUD_DATABASE_URL = "postgresql+psycopg2://postgres:"+password+"@"+hostname+":5432/Cryptocurrency"
 
