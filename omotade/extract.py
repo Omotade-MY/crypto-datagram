@@ -15,6 +15,8 @@ def scrape():
     
     return soup
 
+
+
 def extract_coindata():
     """
     Extracts the current price, 24thVolume and MarketCap
