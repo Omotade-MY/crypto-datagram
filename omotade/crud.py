@@ -36,8 +36,11 @@ def get_common_cols(db_cols, ext_cols):
     common_cols = []
     for col in ext_cols:
         if col == '24h':
-             ext_cols[ext_cols.index(col)] = "Change(24h)"
-             col = "Change(24h)"
+             ext_cols[ext_cols.index(col)] = "Change_24h"
+             col = "Change_24h"
+        elif col == "Volume(24h)":
+            ext_cols[ext_cols.index(col)] = "Volume_24h"
+            col = "Volume_24h"
         if col in db_cols:
             common_cols.append(col)
 
