@@ -11,11 +11,13 @@ sys.path.append(os.getcwd())
 
 try:
     from extract import extract_coindata
-    from config import local_engine
+    from config import local_engine, cloudpb_engine, cloudtb_engine
     
 except ModuleNotFoundError:
     from omotade.extract import extract_coindata
-    from omotade.config import local_engine
+    from omotade.config import local_engine, cloudtb_engine, cloudpb_engine
+
+engine = cloudtb_engine
 
 from sqlalchemy.orm import sessionmaker
 from tqdm.std import tqdm
@@ -25,12 +27,26 @@ import logging
 logger = logging.Logger('catch_all')
 
 # get coin information
-coindata, columns = extract_coindata()
+coindata, default_cols = extract_coindata()
 
 #binding session to local engine
-Session = sessionmaker(bind = local_engine)
+#Session = sessionmaker(bind = engine)
 
-def load_data(data = coindata,columns=columns, session=Session):
+def get_common_cols(db_cols, ext_cols):
+    common_cols = []
+    for col in ext_cols:
+        if col == '24h':
+             ext_cols[ext_cols.index(col)] = "Change_24h"
+             col = "Change_24h"
+        elif col == "Volume(24h)":
+            ext_cols[ext_cols.index(col)] = "Volume_24h"
+            col = "Volume_24h"
+        if col in db_cols:
+            common_cols.append(col)
+
+    return common_cols    
+
+def load_data(data = coindata,web_columns=default_cols, session=engine):
     """
     Loads data in batches into database
     
@@ -38,41 +54,30 @@ def load_data(data = coindata,columns=columns, session=Session):
     --------
     data: list of tuples of coin infomation scraped from websites
     
-    columns: the attribute of the data corresponding to the columns in the database table
+    web_columns: Website table headers
     
     session: a binded engine session maker
     """
+
     # start stopwatch
     start = datetime.now()
     
     # creating an instance of the session
-    s = session()
+    s = session.connect()
+
+    
+    query = """Select column_name from INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'transacttb'"""
+    info =  s.execute(query).fetchall()
+    db_cols = [i[0] for i in info] # Get the columns in the database table
+
     
     # getting columns. Columns must match columns on the crypto table in the database
-    cols = columns
+    columns = get_common_cols(db_cols, web_columns)
+    data_frame = pd.DataFrame(data, columns=web_columns)[columns]
     
     try:
-        for coin in tqdm(data, desc="Inserting data into Crypto table"):
-            
-            # convert coin information to list
-            vals = list(coin)
-            
-            s.rollback()
-            
-            # sql query for inserting data into database
-            query = '''INSERT INTO public.Crypto ({}, {}, {}, 
-            "{}", {}, "{}", "{}", "{}", "{}", "{}", {}) 
-            VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}','{}', '{}', '{}')'''\
-            .format(cols[0], cols[1], cols[2], cols[3], cols[4], cols[5], cols[6], cols[7], cols[8], 
-                    cols[9], cols[10], vals[0], vals[1], vals[2], vals[3], vals[4], vals[5], vals[6], vals[7],
-                    vals[8], vals[9], vals[10])
-            
-            # executing query
-            s.execute(query)
-            
-            # making sure query/changes are commited into database
-            s.commit()
-        
+
+        data_frame.to_sql('transacttb', con=s, if_exists='append', index = False)
         # stop stopwatch
         stop = datetime.now()  
         
@@ -120,4 +125,6 @@ def csv_to_db(engine_session, df):
     finally:
         # make sure the session is close whether data was loaded or not
         engine_session.close()
+
+
              
