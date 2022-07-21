@@ -123,5 +123,5 @@ def csv_to_db(engine_session, df):
         # make sure the session is close whether data was loaded or not
         engine_session.close()
 
-load_data()
+
              
