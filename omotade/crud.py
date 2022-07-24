@@ -127,4 +127,134 @@ def csv_to_db(engine_session, df):
         engine_session.close()
 
 
+# =====================================================================================#
+# Production Database related functions
+
+def execute_query(engine, query, returns = False):
+
+    """
+        ------------
+        returns None
+        ------------
+        This function executes an sql query on the a database engine
+
+        engine: a  database engine
+        query: SQL query to be executed
+    """
+    conn = engine.connect()
+
+    try:
+        rs = conn.execute(query)
+    except Exception as e:
+        logger.log(e)
+        print('Unknown error occured')
+
+    finally:
+        conn.close()
+    if returns == True:
+        return rs.fetchall()
+    
+
+def get_websites(df):
+    """
+    -------------
+    returns tuple
+    -------------
+    retunrs a sequence of unique websites present in a data
+
+    df: a pandas dataframe object
+    """
+    webs = list(df['Website'].unique())
+    if len(webs) <= 1:
+        if 'END' not in webs:
+            webs.append('END')
+    return tuple(webs)
+
+
+# get WebId
+def get_web_id(engine):
+
+    """
+    ---------------------------
+    returns dictionary of WebId
+    ---------------------------
+    This funtion checks and returns the web ids of websites present in the transact table.
+    
+    """
+    query = f"""SELECT * FROM website
+                Where website.url in {websites}"""
+    webs = execute_query(engine, query=query, returns=True)
+    if len(webs) != 0:
+        urlid = {url:id for id,url in webs}
+    else:
+        urlid = {}
+    return urlid
+
+
+
+# get CoinId
+def get_coin_id(engine, coinname):
+    """
+    ----------
+    return int
+    ----------
+
+    checks and returns the coinid of a coin
+
+    engine: A database engine
+    coinname: name of the coin
+    """
+    query = f"""SELECT CoinId FROM coin
+                Where coin.CoinName = '{coinname}'"""
+    rs = execute_query(engine, query=query, returns=True)
+    if len(rs) != 0:
+        coinid = rs[0][0]
+    else:
+        coinid = 0
+    return coinid
+
+
+def update_web_id(ext_engine=transact_engine, ld_engine=engine):
+    """
+    ------------
+    returns None
+    ------------ 
+    create a website Id for a website on that appears on the transact tb
+
+    ext_enigine" tranct 
+    """
+    query = """SELECT DISTINCT "Website" from transacttb """
+    rs = execute_query(ext_engine, query, returns=True)
+    webs = [web[0] for web in rs]
+    for web in webs:
+        query = f"""INSERT INTO website (url)
+                    select '{web}'
+                    where not exists (select WebId from Website where
+				    url = '{web}' ) """
+
+        execute_query(ld_engine, query)
+
+
+def update_coin(ext_engine=transact_engine, ld_engine=engine):
+
+    """
+        -------------
+        returns None
+        ------------
+
+        upates the coin table
+    """
+    query = """SELECT DISTINCT "CoinName", "Symbol" from transacttb """
+    rs = execute_query(ext_engine, query, returns=True)
+    coins = [(coin, symbol)  for coin, symbol in rs]
+    for coin, symbol in coins:
+        
+        query = f"""INSERT INTO coin (coinname, symbol)
+                    select '{coin}', '{symbol}'
+                    where not exists (select CoinId from coin where
+				    coinname = '{coin}' ) """
+
+        execute_query(ld_engine, query)
+
+
              
