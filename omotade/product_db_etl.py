@@ -43,7 +43,7 @@ def extract(engine, coinname, migrate=False):
             query = f"""SELECT * FROM TRANSACTTB AS TB
                 WHERE TB."CoinName" = '{coinname}' """
 
-        coin = pd.DataFrame(execute_query(transact_engine, query=query, returns=True), columns=column_names)
+        coin = pd.DataFrame(execute_query(engine, query=query, returns=True), columns=column_names)
 
         print('Extraction Done!!!\n')
 
