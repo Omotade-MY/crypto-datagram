@@ -127,4 +127,3 @@ def csv_to_db(engine_session, df):
         engine_session.close()
 
 
-             
