@@ -4,6 +4,10 @@ Created on Tue May 17 22:32:11 2022
 
 @author: Omotade
 """
+import sys
+import os
+sys.path.append(os.getcwd())
+
 from sqlalchemy import create_engine
 
 from auths import hostname, password

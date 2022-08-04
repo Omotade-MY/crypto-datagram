@@ -29,7 +29,7 @@ def execute_query(engine, query, returns = False):
         return rs.fetchall()
     
 
-def extract(engine, coinname, migrate=False):
+def extract(engine, coin_symbol, migrate=False):
         query = """Select column_name from INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'transacttb'"""
 
         info =  execute_query(engine, query=query, returns=True)
@@ -37,15 +37,15 @@ def extract(engine, coinname, migrate=False):
 
         if migrate == False:
             query = f"""SELECT * FROM TRANSACTTB AS TB
-                WHERE TB."CoinName" = '{coinname}' and TB."Time" >= now() - interval '10 minutes'"""
-                
+                WHERE TB."Symbol" = '{coin_symbol}' and TB."Time" >= now() - interval '11 minutes'"""
+            
         elif migrate == True:
             query = f"""SELECT * FROM TRANSACTTB AS TB
-                WHERE TB."CoinName" = '{coinname}' """
+                WHERE TB."Symbol" = '{coin_symbol}' """
 
         coin = pd.DataFrame(execute_query(engine, query=query, returns=True), columns=column_names)
 
-        print('Extraction Done!!!\n')
+        print('Extraction Done!!!')
 
         return coin
 
@@ -82,6 +82,7 @@ def update_coin(ext_engine = cloudtb_engine, ld_engine=cloudpb_engine):
 
         upates the coin table
     """
+    print("Updating coin table")
     query = """SELECT DISTINCT "CoinName", "Symbol" from transacttb """
     rs = execute_query(ext_engine, query, returns=True)
     coins = [(coin, symbol)  for coin, symbol in rs]
@@ -90,12 +91,12 @@ def update_coin(ext_engine = cloudtb_engine, ld_engine=cloudpb_engine):
         query = f"""INSERT INTO coin (coinname, symbol)
                     select '{coin}', '{symbol}'
                     where not exists (select CoinId from coin where
-				    coinname = '{coin}' ) """
+				    symbol = '{symbol}' ) """
 
         execute_query(ld_engine, query)
 
 # get WebId
-def get_web_id(coin_df, engine = local_engine ):
+def get_web_id(coin_df, engine = cloudpb_engine ):
 
     """
     ---------------------------
@@ -109,23 +110,33 @@ def get_web_id(coin_df, engine = local_engine ):
         if 'END' not in webs:
             webs.append('END')
     websites =  tuple(webs)
-
+  
 
     query = f"""SELECT * FROM website
                 Where website.url in {websites}"""
-    webs = execute_query(engine, query=query, returns=True)
-    if len(webs) != 0:
-        urlid = {url:id for id,url in webs}
+    urls = execute_query(engine, query=query, returns=True)
+
+    urlid = {url:id for id, url in urls}
+    if 'END' in websites:
+        websites = list(websites)
+        websites.remove('END')
+    check =  set(urlid.keys()) == set(websites)
+
+    if check == True:    
+        return urlid 
     else:
+        print("WebId not found...")
         update_web_id(ld_engine=engine)
+        print("Web ids updated!!!")
         urlid = get_web_id(coin_df)
+
     return urlid
 
 
 
 
 # get CoinId
-def get_coin_id(coinname, engine= local_engine):
+def get_coin_id(coin_symbol, engine=cloudpb_engine):
     """
     ----------
     return int
@@ -137,14 +148,18 @@ def get_coin_id(coinname, engine= local_engine):
     coinname: name of the coin
     """
     query = f"""SELECT CoinId FROM coin
-                Where coin.CoinName = '{coinname}'"""
+                Where coin.symbol = '{coin_symbol}'"""
     rs = execute_query(engine, query=query, returns=True)
     if len(rs) != 0:
+        
+        coinid = rs[0][0]
+    elif len(rs) > 1:
+        print("multiple id returned. Please inspect tabel\n Selecting first id returned")
         coinid = rs[0][0]
     else:
         update_coin(ld_engine=engine)
 
-        coinid = get_coin_id(coinname)
+        coinid = get_coin_id(coin_symbol)
     return coinid
 
 
@@ -224,13 +239,16 @@ def clean(df):
 
 
 def transform(coindf, target_table, engine):
-    coindf['CoinId'] = coindf['CoinName'].apply(get_coin_id)
+
+    coindf['CoinId'] = coindf['Symbol'].apply(get_coin_id)
+
+
     coindf['WebId'] = coindf['Website'].map(get_web_id(coindf))
 
     adjusted_data = adjust_data(df=coindf,engine=engine, table_name=target_table)
     cleaned_data = clean(adjusted_data)
 
-    print('Transformation Complete!!!\n')
+    print('Transformation Completed!!!')
     return cleaned_data
     
 def load_prd_db(data, table, engine):
@@ -256,16 +274,17 @@ def load_prd_db(data, table, engine):
             data = pd.DataFrame(data)
         except:
             
-            print("failed to convert to DataFrame")
+            print("Failed to convert to DataFrame")
 
             return
     conn = engine.connect()
     try:
 
         data.to_sql(table, conn, if_exists='append', index=False)
-        print(f'\nBatch Load into {table} table completed')
+        print(f'Batch Load into {table} table completed')
 
     except Exception as e:
         logger.log(e)
         print('Failed to load Database')
     
+ 
