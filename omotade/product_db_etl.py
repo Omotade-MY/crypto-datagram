@@ -1,6 +1,6 @@
 # =====================================================================================#
 # Production Database related functions
-from config import local_engine, cloudpb_engine, cloudtb_engine
+from config import localpb_engine, localtb_engine
 import pandas as pd
 from logging import Logger
 logger = Logger('catch_all')
@@ -51,7 +51,7 @@ def extract(engine, coin_symbol, migrate=False):
 
 # Update website table
 
-def update_web_id(ext_engine = cloudtb_engine, ld_engine = cloudpb_engine):
+def update_web_id(ext_engine = localtb_engine, ld_engine = localpb_engine):
     """
     ------------
     returns None
@@ -73,7 +73,7 @@ def update_web_id(ext_engine = cloudtb_engine, ld_engine = cloudpb_engine):
 
 
 # Update coin table
-def update_coin(ext_engine = cloudtb_engine, ld_engine=cloudpb_engine):
+def update_coin(ext_engine = localtb_engine, ld_engine=localpb_engine):
 
     """
         -------------
@@ -96,7 +96,7 @@ def update_coin(ext_engine = cloudtb_engine, ld_engine=cloudpb_engine):
         execute_query(ld_engine, query)
 
 # get WebId
-def get_web_id(coin_df, engine = cloudpb_engine ):
+def get_web_id(coin_df, engine = localpb_engine ):
 
     """
     ---------------------------
@@ -136,7 +136,7 @@ def get_web_id(coin_df, engine = cloudpb_engine ):
 
 
 # get CoinId
-def get_coin_id(coin_symbol, engine=cloudpb_engine):
+def get_coin_id(coin_symbol, engine=localpb_engine):
     """
     ----------
     return int

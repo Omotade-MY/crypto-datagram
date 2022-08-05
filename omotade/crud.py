@@ -11,16 +11,13 @@ sys.path.append(os.getcwd())
 
 try:
     from extract import extract_coindata
-    from config import local_engine, cloudpb_engine, cloudtb_engine
+    from config import localtb_engine
     
 except ModuleNotFoundError:
     from omotade.extract import extract_coindata
-    from omotade.config import local_engine, cloudtb_engine, cloudpb_engine
+    from omotade.config import localtb_engine
+engine = localtb_engine
 
-engine = cloudtb_engine
-
-from sqlalchemy.orm import sessionmaker
-from tqdm.std import tqdm
 import pandas as pd
 from datetime import datetime
 import logging
@@ -29,8 +26,6 @@ logger = logging.Logger('catch_all')
 # get coin information
 coindata, default_cols = extract_coindata()
 
-#binding session to local engine
-#Session = sessionmaker(bind = engine)
 
 def get_common_cols(db_cols, ext_cols):
     common_cols = []

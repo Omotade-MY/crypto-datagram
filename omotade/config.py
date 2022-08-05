@@ -13,14 +13,14 @@ from sqlalchemy import create_engine
 from auths import hostname, password
 
 
-LOCAL_DATABASE_URI = "postgresql+psycopg2://postgres:udkhulbisalaam@localhost:5432/Cryptocurrency"
+#LOCAL_DATABASE_URI = "postgresql+psycopg2://postgres:udkhulbisalaam@localhost:5432/Cryptocurrency"
 
-CLOUD_DATABASE_URI_TB = "postgresql+psycopg2://omotade:"+password+"@"+hostname+":5432/CryptoTransactDB"
-CLOUD_DATABASE_URI_PB = "postgresql+psycopg2://omotade:"+password+"@"+hostname+":5432/ProductionDB"
+LOCAL_DATABASE_URI_PB = "postgresql+psycopg2://postgres:"+password+"@"+hostname+":5432/Cryptocurrency"
+LOCAL_DATABASE_URI_TB = "postgresql+psycopg2://postgres:"+password+"@"+hostname+":5432/postgres"
 
-local_engine = create_engine(LOCAL_DATABASE_URI)
-cloudtb_engine = create_engine(CLOUD_DATABASE_URI_TB)
-cloudpb_engine = create_engine(CLOUD_DATABASE_URI_PB)
+
+localtb_engine = create_engine(LOCAL_DATABASE_URI_TB)
+localpb_engine = create_engine(LOCAL_DATABASE_URI_PB)
 
 
     
