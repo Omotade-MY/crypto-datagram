@@ -6,6 +6,8 @@ This project span across creating data pipelines for cryptocurrency data extract
 
 ### Tools and Services used through out this project
 * Python
+* BeautifulSoup
+* Pandas
 * SQL
 * Sqlalchemy
 * AWS RDS for PostgresSQL
