@@ -5,7 +5,7 @@ from config import localtb_engine, localpb_engine
 # Extract
 
 datacoin = extract(localtb_engine, 'BTC', migrate=True)
-print('This is datacoin',datacoin)
+
 
 # Transaform
 
