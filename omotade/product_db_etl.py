@@ -2,6 +2,7 @@
 # Production Database related functions
 from config import localpb_engine, localtb_engine
 import pandas as pd
+import numpy as np
 from logging import Logger
 logger = Logger('catch_all')
 def execute_query(engine, query, returns = False):
@@ -20,8 +21,7 @@ def execute_query(engine, query, returns = False):
     try:
         rs = conn.execute(query)
     except Exception as e:
-        logger.log(e)
-        print('Unknown error occured')
+        logger.error(e, exc_info="Unknown error occured")
 
     finally:
         conn.close()
@@ -43,10 +43,14 @@ def extract(engine, coin_symbol, migrate=False):
             query = f"""SELECT * FROM TRANSACTTB AS TB
                 WHERE TB."Symbol" = '{coin_symbol}' """
 
-        coin = pd.DataFrame(execute_query(engine, query=query, returns=True), columns=column_names)
+        #coin = pd.DataFrame(execute_query(engine, query=query, returns=True), columns=column_names)
+        coin = pd.read_sql_query(query,engine.connect())
+
+        
+        if coin.shape[0] == 0:
+            coin = extract(engine, coin_symbol, migrate=True)
 
         print('Extraction Done!!!')
-
         return coin
 
 # Update website table
@@ -106,15 +110,16 @@ def get_web_id(coin_df, engine = localpb_engine ):
     
     """
     webs = list(coin_df['Website'].unique())
+    
     if len(webs) <= 1:
         if 'END' not in webs:
             webs.append('END')
     websites =  tuple(webs)
-  
-
+    
     query = f"""SELECT * FROM website
                 Where website.url in {websites}"""
-    urls = execute_query(engine, query=query, returns=True)
+    url_df = pd.read_sql_query(query, engine.connect())
+    urls = url_df.values
 
     urlid = {url:id for id, url in urls}
     if 'END' in websites:
@@ -195,6 +200,8 @@ def clean(df):
     # clean volume
 
     def normal(vol):
+        if type(vol) is type(None):
+            return np.nan
         temp = vol.replace(',', '')
         vol = temp.strip('$')
 
@@ -219,6 +226,8 @@ def clean(df):
 
     # clean 24 hours percentage change
     def rem_sign(perc):
+        if type(perc) is type(None):
+            return np.nan
         temp = perc.strip('%')
         try:
             perc = float(temp)
